@@ -1,0 +1,22 @@
+<launch>
+  <node name="Localization" type="localization_ndt" pkg="localization_ndt" output="log" />
+
+  <param name="/map_filename" type="str" value="/home/takahashi/catkin_ws/p_cloud_ascii.pcd" />
+
+  <param name="/draw_skip" type="int" value="5" />            <!-- 地図描画の周期 -->
+  <param name="/start_frame" type="int" value="190" />        <!-- スタートするフレーム番号 -->
+  <param name="/end_frame" type="int" value="100000" />        <!-- 終了するフレーム番号 -->
+  <param name="/keyframe_skip" type="int" value="5" />        <!-- 全体地図を作る周期 -->
+  <param name="/score_thre" type="double" value="1.0" />      <!-- スコアの閾値 -->
+  <param name="/num_thre" type="int" value="150" />            <!-- 使用スキャン点数の閾値 -->
+  <param name="/space" type="double" value="0.05" />          <!-- 5cm スキャン点間隔 -->
+  <param name="/space_thre" type="double" value="0.25" />     <!-- 25cm スキャン点間隔の閾値 -->
+  <param name="/sepThre" type="double" value="10.0" />     <!-- 10mごとにサブマップを作る -->
+
+  <param name="/TransformationEpsilon" type="double" value="0.01" />
+  <param name="/StepSize" type="double" value="0.1" />
+  <param name="/Resolution" type="double" value="0.8" />
+  <param name="/MaximumIterations" type="int" value="35" />
+  
+  <param name="/LeafSize" type="double" value="0.2" />
+</launch>
