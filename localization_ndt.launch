@@ -1,0 +1,25 @@
+<launch>
+  <node name="Localization" type="localization_ndt" pkg="localization_ndt" output="log" />
+  <node pkg="map_publisher" type="map_publisher" name="MapPublisher" />
+  <node pkg="tf2_lidar" type="tf2_lidar" name="static_tf_publisher" />
+
+  <param name="/map_filename" type="str" value="/home/takahashi/catkin_ws/p_cloud_ascii.pcd" />
+
+  <param name="/main_hz" type="double" value="2" />
+
+  <param name="/scthre" type="double" value="0.1" />      <!-- スコアの閾値 -->
+
+  <param name="/start_x" type="double" value="0.0" />
+  <param name="/start_y" type="double" value="2.0" />
+  <param name="/start_th" type="double" value="-5.0" />
+
+  <param name="/TransformationEpsilon" type="double" value="0.05" />
+  <param name="/StepSize" type="double" value="0.1" />
+  <param name="/Resolution" type="double" value="1.0" />
+  <param name="/MaximumIterations" type="int" value="10" />
+
+  <param name="/LeafSize" type="double" value="0.2" />
+
+  <param name="/odom_topic_name" type="str" value="/ypspur_ros/odom" />
+  <param name="/scan_topic_name" type="str" value="/scan" />
+</launch>

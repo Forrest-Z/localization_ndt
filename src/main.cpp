@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include "localization_ndt/SlamLauncher.h"
+#include "localization_ndt/LocalizationLauncher.h"
 
 int main(int argc, char **argv){
   ros::init(argc, argv, "localization_ndt");

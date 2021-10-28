@@ -47,7 +47,7 @@ void LocalizationLauncher::cb_scan(const sensor_msgs::LaserScan &scan_msg){
   angle = -135.0;
   for(int i = 0; i < scan_msg.ranges.size(); i++) {
     LPoint2D lp;
-    if(flag[i] == true) {
+    if(ok_range[i] == true) {
       lp.sid = stamp;
       lp.set_RangeAngle2XY(scan_msg.ranges[i], angle);
       scan.lps.push_back(lp);
@@ -56,16 +56,34 @@ void LocalizationLauncher::cb_scan(const sensor_msgs::LaserScan &scan_msg){
   }
 
   scan.sid = stamp;
+
+  header = scan_msg.header;
+
+  publishTF(estim.getLastPose());
 }
 
-void LocalizationLauncher::publishPose(Pose2D pose2d) {
+void LocalizationLauncher::publishTF(const Pose2D &pose2d) {
+  geometry_msgs::TransformStamped transformStamped;
+  transformStamped.header.stamp = header.stamp;
+//  transformStamped.header.stamp = ros::Time::now();
+  transformStamped.header.seq = stamp;
+  transformStamped.header.frame_id = "map";
+  transformStamped.child_frame_id = "laser";
+  transformStamped.transform.translation.x = pose2d.tx;
+  transformStamped.transform.translation.y = pose2d.ty;
+  transformStamped.transform.translation.z = 0.0;
+  transformStamped.transform.rotation = MyUtil::rpy_to_geometry_quat(0.0, 0.0, DEG2RAD(pose2d.th));
+  dynamic_br.sendTransform(transformStamped);
+}
+
+void LocalizationLauncher::publishPose(const Pose2D &pose2d) {
+// PoseStamped
   geometry_msgs::PoseStamped pose_stamped;
 
   pose_stamped.pose.position.x = pose2d.tx;
   pose_stamped.pose.position.y = pose2d.ty;
   pose_stamped.pose.position.z = 0;
   pose_stamped.pose.orientation = MyUtil::rpy_to_geometry_quat(0.0, 0.0, DEG2RAD(pose2d.th));
-
   pose_stamped.header.frame_id = "map";
   pose_stamped.header.stamp = ros::Time::now();
   pose_stamped.header.seq = stamp;
@@ -74,31 +92,33 @@ void LocalizationLauncher::publishPose(Pose2D pose2d) {
 }
 
 void LocalizationLauncher::main_loop() {
-  ros::AsyncSpinner spinner(2);  // 引数:spinを処理するスレッド数
+  ros::AsyncSpinner spinner(1);  // 引数:spinを処理するスレッド数
   spinner.start();
 
+  // 初期姿勢を推定
+  ros::Rate init_rate(0.5);
+  init_rate.sleep();
+  {
+    std::lock_guard<std::mutex> lock(m);
+    if (estim.estimetaInitPose(scan) == false) {
+      ROS_INFO("[LocalizationLauncher::main_loop] estimetaInitPose : miss");
+      return;
+    }
+    publishPose(estim.getLastPose());
+  }
+
   ros::Rate rate(hz);
+  Scan2D scan_copy;
 
   while(ros::ok()) {
-  　{
+    {
       std::lock_guard<std::mutex> lock(m);
-      ROS_INFO("--- [LocalizationLauncher::main_loop] stamp=%d, state=%d ---", stamp, st);
-
-      if (st == Init) {
-        estim.estimetaInitPose(scan); // 処理本体
-        publishPose(estim.getLastPose());
-
-        ROS_INFO("[LocalizationLauncher::main_loop] intiPose OK?");
-        std::string ok;
-        cin >> ok;
-        if(ok == "ok") st = Esti;
-
-      } else if (st == Esti) {
-        estim.estimatePose(scan); // 処理本体
-        publishPose(estim.getLastPose());
-      }
-      stamp++;
+      scan_copy = scan;
     }
+    ROS_INFO("--- [LocalizationLauncher::main_loop] stamp=%d ---", stamp);
+    estim.estimatePose(scan_copy); // 処理本体
+    publishPose(estim.getLastPose());
+    stamp++;
     rate.sleep();
   }
 

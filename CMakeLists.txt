@@ -142,7 +142,6 @@ add_executable(${PROJECT_NAME}
 src/main.cpp
 src/MyUtil.cpp
 src/LocalizationLauncher.cpp
-src/FrontEnd.cpp
 src/Scan2D.cpp
 src/Pose2D.cpp
 src/PointCloudMap.cpp
